@@ -18,11 +18,26 @@ mywebsocket.onopen= function (){
 }
 
 
+function styleString(text) {
+  // Apply the desired styling to the string using HTML tags and CSS
+  var styledText = "<span style='color: red; font-weight: bold;'>" + text + "</span>";
+
+  return styledText;
+}
+function styleNormalMessage(text) {
+  // Apply the desired styling to the string using HTML tags and CSS
+  var styledText = "<p style='color: black; font-weight: bold;'>" + text + "</p>";
+
+  return styledText;
+}
 mywebsocket.onmessage= function (event){
     // console.log("--- message is being sent =====")
     console.log(event.data, typeof data) // string
     data = JSON.parse(event.data)
-    chat.innerHTML += data.message
+    if (data.type==="logout"){
+        chat.innerHTML += styleString(data.message)
+    }
+    else{chat.innerHTML += styleNormalMessage(data.message)}
 }
 
 mywebsocket.onerror = function (){

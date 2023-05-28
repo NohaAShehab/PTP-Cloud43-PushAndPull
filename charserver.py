@@ -7,22 +7,22 @@ def remove_dict_from_list(list_of_dict :list, key):
     for item in list_of_dict:
         if key in item.keys():
             list_of_dict.remove(item)
-
     return  list_of_dict
 class Chatserver(WebSocket):
     clients =[]
     users = []
+
+    ### generated _id ? get the latest_client ? ---> id ---> generated id+1
     def connected(self):
         print(self.address, 'connected')
         self.__class__.users.append(self)
 
     def handle_close(self):
-        message= f"--->{self.username} has been disconnected\n"
-        print(self.address, 'closed')
+        message= f"{self.username} has been disconnected\n"
         self.__class__.clients = remove_dict_from_list(self.__class__.clients, self)
         self.__class__.users.remove(self)
-        for user in self.__class__.users:
-                user.send_message(json.dumps({"message":message}))
+        self.__send_message_to_all(json.dumps({"message":message, "type":"logout",
+                                               'onlineusers':''}))
 
 
 
@@ -31,10 +31,7 @@ class Chatserver(WebSocket):
     def handle(self):
         msg = self.prepare_message(self.data)
         print(msg)
-        for user in self.__class__.users:
-            if user !=self:
-                user.send_message(msg)
-                print(f"--- message sent to client {user}")
+        self.__class__.__send_message_to_all(msg, self)
 
 
     def prepare_message(self, message):
@@ -49,6 +46,14 @@ class Chatserver(WebSocket):
 
         message_to_send = json.dumps({"message":message_to_send})
         return  message_to_send
+
+    @classmethod
+    def __send_message_to_all(cls, message, ignore=None):
+        # ignore if I need to ignore any user from sending message
+        for user in cls.users:
+            if user !=ignore:
+                user.send_message(message)
+
 
 
 
